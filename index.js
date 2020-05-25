@@ -34,12 +34,21 @@ client.on('message', msg => {
 	if (!msg.content.startsWith(prefix) || msg.author.bot) return;
 
 	const args = msg.content.slice(prefix.length).split(/ +/);
-	const command = args.shift().toLowerCase();
+	const commandName = args.shift().toLowerCase();
 
-	if(!client.commands.has(command)) return;
+	if(!client.commands.has(commandName)) return;
 
+	const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.find(commandName));
+
+	if(command.args && !args.length){
+		let reply = "!!!You didn't provide any arguments!!!, ";
+		if(command.usage){
+			reply += `provide ${command.usage} in this format`;
+		}
+		return msg.reply(reply);
+	}
  	try{
- 		client.commands.get(command).execute(msg, args);
+ 		command.execute(msg, args);
  	}
  	catch(error){
  		console.error(error);
